@@ -4,11 +4,14 @@ lista = Lista()
 
 lista.imprimir()
 
-lista.add("João")
+lista.add("Simon")
 lista.add("Maria")
-lista.add("Julia")
+lista.add("Zeus")
 lista.add("Adão")
 
-lista.remover("Adalto")
-lista.remover("João")
+lista.remover("Simon")
+lista.remover("Adão")
 lista.remover("Maria")
+
+lista.reverseList()
+lista.imprimir()

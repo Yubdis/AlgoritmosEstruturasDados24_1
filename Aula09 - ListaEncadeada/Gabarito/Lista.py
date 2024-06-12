@@ -65,3 +65,16 @@ class Lista:
             if tamInicial == self.tamanho:
                 print("Valor não encontrado")
         self.imprimir()
+
+    def reverseList(self):
+        temp = None
+        current = self.inicio
+
+        while current is not None:
+            temp = current.antes
+            current.antes = current.proximo
+            current.proximo = temp
+            current = current.antes
+
+        if temp is not None:
+            self.head = temp.antes

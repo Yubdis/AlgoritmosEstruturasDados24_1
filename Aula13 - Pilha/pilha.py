@@ -1,9 +1,9 @@
-from livro import Livro  # Assuming Livro class is defined in livro module
+from livro import Livro  
 
 class Pilha:
     def __init__(self):
         self.topo = None
-        self.tamanho = 0  # Initialize tamanho to 0 for an empty stack
+        self.tamanho = 0  
 
     def add(self, titulo, autor, paginas):
         livro = Livro(titulo, autor, paginas)

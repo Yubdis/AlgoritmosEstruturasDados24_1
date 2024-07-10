@@ -1,78 +1,163 @@
-class Torre:
-    def __init__(self, id, nome, endereco):
-        self.id = id
-        self.nome = nome
-        self.endereco = endereco
-
-    def __str__(self):
-        texto = "\nID: " + self.id
-        texto += "\nNome: " + self.nome
-        texto += "\nEndereco: " + self.endereco
-        return texto
-
-    def cadastrar():
-        pass
-
-    def imprimir(self):
-        print("-------Torre------")
-        print(self)
+class Node:
+    def __init__(self, apartment):
+        self.apartment = apartment
+        self.next = None
 
 
-class Apartamento(Torre):
-    def __init__(self, id, numero, torre, vaga=None):
-        super().__init__(id)
-        self.numero = numero
-        self.torre = torre
-        self.vaga = vaga
-        self.proximo = None
-
-    def __str__(self):
-        texto = "\nNome: " + self.id.nome
-        texto = "\nNumero: " + self.numero
-        texto += "\nTorre " + self.torre
-        texto += "\nVaga: " + self.vaga
-        return texto
-
-    def cadastrar():
-        pass
-
-    def imprimir(self):
-        print(self)
+class Tower:
+    def __init__(self, tower_id, name, address):
+        self.id = tower_id
+        self.name = name
+        self.address = address
 
 
-class FilaEspera:
+class Apartment:
+    def __init__(self, apartment_id, apartment_number, parking_number, tower):
+        self.id = apartment_id
+        self.apartment_number = apartment_number
+        self.parking_number = parking_number
+        self.tower = tower
+
+
+class WaitingQueue:
     def __init__(self):
-        self.inicio = None
-        self.fim = None
-        self.tamanho = 0
+        self.queue = []
 
-    def add(self, vaga):
-        nodo = Apartamento(vaga)
-        if self.inicio is None:
-            self.inicio = nodo
+    def add_apartment(self, apartment):
+        self.queue.append(apartment)
+
+    def remove_apartment(self, parking_number):
+        for i, apartment in enumerate(self.queue):
+            if apartment.parking_number == parking_number:
+                return self.queue.pop(i)
+        return None
+
+    def remove_first(self):
+        if self.queue:
+            return self.queue.pop(0)
+        return None
+
+    def print_queue(self):
+        if not self.queue:
+            print("Waiting queue is empty.")
         else:
-            self.fim.proximo = nodo
-        self.fim = nodo
-        self.tamanho += 1
-        self.imprimir()
+            print("Apartments waiting for parking space:")
+            for apartment in self.queue:
+                print(
+                    f"Apartment {apartment.id}, Apartment Number: {apartment.apartment_number}, Parking Number: {apartment.parking_number}"
+                )
 
-    def imprimir(self):
-        print("------Fila Espera Vaga-----------")
-        if self.inicio == None:
-            print("Fila Vazia")
+
+class Condominium:
+    def __init__(self):
+        self.available_parkings = 2
+        self.head = None
+        self.waiting_queue = WaitingQueue()
+        self.registered_apartments = set()
+        self.registered_parking_numbers = set()
+
+    def register_apartment(self, apartment):
+        if not isinstance(apartment, Apartment):
+            print("Error: Invalid apartment object.")
+            return
+
+        if apartment.id in self.registered_apartments:
+            print(f"Error: Apartment ID {apartment.id} is already registered.")
+            return
+
+        if apartment.parking_number in self.registered_parking_numbers:
+            print(
+                f"Error: Parking number {apartment.parking_number} is already registered."
+            )
+            return
+
+        new_node = Node(apartment)
+        if self.available_parkings > 0:
+            if (
+                self.head is None
+                or self.head.apartment.parking_number > apartment.parking_number
+            ):
+                new_node.next = self.head
+                self.head = new_node
+            else:
+                current = self.head
+                while (
+                    current.next is not None
+                    and current.next.apartment.parking_number < apartment.parking_number
+                ):
+                    current = current.next
+                new_node.next = current.next
+                current.next = new_node
+            self.available_parkings -= 1
+            self.registered_apartments.add(apartment.id)
+            self.registered_parking_numbers.add(apartment.parking_number)
+            print(
+                f"Apartment {apartment.id} registered successfully with parking space."
+            )
         else:
-            print(self.tamanho, " pessoas na Fila")
-            aux = self.inicio
-            texto = ""
-            while aux:
-                texto += aux.dado + " - "
-                aux = aux.proximo
-            print(texto)
+            self.waiting_queue.add_apartment(apartment)
+            print(
+                f"Apartment {apartment.id} added to the waiting queue for parking space."
+            )
 
-    def remover(self):
-        if self.inicio:
-            self.inicio = self.inicio.proximo
-            if self.inicio != None:
-                self.fim = None
-            self.tamanho -= 1
-        self.imprimir()
+    def release_parking(self, parking_number):
+        if not isinstance(parking_number, int):
+            print("Error: Parking number should be an integer.")
+            return
+
+        if self.head is None:
+            print(f"Error: Parking space {parking_number} is not currently occupied.")
+            return
+
+        if self.head.apartment.parking_number == parking_number:
+            released_apartment = self.head.apartment
+            self.head = self.head.next
+            self.available_parkings += 1
+        else:
+            current = self.head
+            while (
+                current.next is not None
+                and current.next.apartment.parking_number != parking_number
+            ):
+                current = current.next
+            if current.next is None:
+                print(
+                    f"Error: Parking space {parking_number} is not currently occupied."
+                )
+                return
+            released_apartment = current.next.apartment
+            current.next = current.next.next
+            self.available_parkings += 1
+
+        print(
+            f"Parking space {parking_number} has been released. Apartment {released_apartment.id} released."
+        )
+        self.registered_parking_numbers.remove(parking_number)
+
+        first_in_queue = self.waiting_queue.remove_first()
+        if first_in_queue:
+            first_in_queue.parking_number = parking_number
+            self.register_apartment(first_in_queue)
+            print(
+                f"Apartment {first_in_queue.id} from waiting queue now has parking space {parking_number}."
+            )
+            self.waiting_queue.add_apartment(released_apartment)
+        else:
+            self.register_apartment(released_apartment)
+            print("No apartments in the waiting queue to occupy the parking space.")
+
+    def print_apartments_with_parking(self):
+        if self.head is None:
+            print("No apartments registered with parking space.")
+        else:
+            print("List of apartments with parking space:")
+            current = self.head
+            while current is not None:
+                apartment = current.apartment
+                print(
+                    f"Apartment {apartment.id}, Apartment Number: {apartment.apartment_number}, Parking Number: {apartment.parking_number}"
+                )
+                current = current.next
+
+    def print_waiting_queue(self):
+        self.waiting_queue.print_queue()

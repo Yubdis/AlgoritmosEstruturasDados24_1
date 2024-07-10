@@ -1,6 +1,4 @@
-from test import Apartment
-from test import Tower
-from test import Condominium
+from classes import *
 
 # 1) Construa a classe Torre e a classe Apartamento. A classe Torre deve possuir os atributos id,
 # nome e endereço. A classe Apartamento deve conter os atributos, id, número do apartamento,
@@ -43,8 +41,19 @@ def main_menu(condominium):
         option = input("Option: ").lower()
 
         if option == "a":
-            apartment_id = input("Enter apartment ID: ")
+            while True:
+                try:
+                    apartment_id = int(input("Enter apartment ID (integer): "))
+                    break
+                except ValueError:
+                    print("Error: Apartment ID should be an integer.")
+
+            if apartment_id in condominium.registered_apartments:
+                print(f"Error: Apartment ID {apartment_id} is already registered.")
+                continue
+
             apartment_number = input("Enter apartment number: ")
+
             while True:
                 try:
                     parking_number = int(input("Enter parking number: "))
@@ -52,13 +61,18 @@ def main_menu(condominium):
                 except ValueError:
                     print("Error: Parking number should be an integer.")
 
-            tower_id = input("Enter tower ID: ")
+            while True:
+                try:
+                    tower_id = int(input("Enter tower ID (integer): "))
+                    break
+                except ValueError:
+                    print("Error: Tower ID should be an integer.")
+
             tower_name = input("Enter tower name: ")
             tower_address = input("Enter tower address: ")
             tower = Tower(tower_id, tower_name, tower_address)
             apartment = Apartment(apartment_id, apartment_number, parking_number, tower)
             condominium.register_apartment(apartment)
-            # redirect to list WITH spot OR wwaiting list
 
         elif option == "b":
             while True:
@@ -70,7 +84,7 @@ def main_menu(condominium):
                 except ValueError:
                     print("Error: Parking number should be an integer.")
             condominium.release_parking(parking_number)
-        # need to add parking spot to apartment in the queue, move apartment that released to back of queue
+
         elif option == "c":
             condominium.print_apartments_with_parking()
 
@@ -85,7 +99,6 @@ def main_menu(condominium):
             print("Invalid option. Please choose one of the listed options.")
 
 
-# Example usage of the condominium
 if __name__ == "__main__":
     condominium = Condominium()
     main_menu(condominium)
